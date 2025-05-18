@@ -17,6 +17,7 @@ class Optris_IR_Thermometer: public SoftwareSerial {
     // Frame size which contains useful data consists of 14 bytes with another 4 bytes being
     // sync frame and end frame with 2 bytes for each frame
     static const size_t expected_frame_size = 18;
+    static const size_t expected_data_frame_size = 14;
  
   private:
     bool _initialized;
@@ -26,7 +27,7 @@ class Optris_IR_Thermometer: public SoftwareSerial {
     unsigned long _baudrate;
     
 
-    char _buffer[14];
+    char _buffer[expected_data_frame_size];
     float _process_temperature;
     
     // Not implemented
@@ -87,6 +88,8 @@ void loop() {
         }
       }
 
+      byte data_buf[14];
+      size_t n = 0;
       while (read_frame) {
         // TODO (Khalid): It is likely that one of the bytes are actually 0x00, so make sure
         // to check two bytes of 0x00
@@ -95,17 +98,36 @@ void loop() {
           // Just break out of the loop if we know it is the end of the frame
           break;
         }
-        Serial.print("Current byte value is: ");
-        Serial.print(ir_thermometer_1.read(), HEX);
-        Serial.println("");
+
+        // Fill a temporary buffer with the received data
+        // There should be a total of 14 bytes
+        data_buf[n] = ir_thermometer_1.read(); 
+        n++;
       }
 
-    } else {
-      Serial.print("Flushing the useless byte: ");
-      Serial.print(ir_thermometer_1.read(), HEX);
-      Serial.println("");
+      if (n < Thermometer::expected_data_frame_size) {
+        Serial.println("There is an error with the data received!");
+        Serial.print(n);
+        Serial.print(" Data received instead");
+        Serial.println(" ");
+      } else {
+        // The first 2 bytes are the process temperature reading
+        Serial.print("Temperature: ");
+        for (size_t i = 0; i < 2; i++) {
+          Serial.print(data_buf[i], HEX);
+          Serial.print(" ");
+        }
+        Serial.println(" ");
+      }
+
+    }
+    else {
+      ir_thermometer_1.read();
+      // Serial.print("Flushing the useless byte: ");
+      // Serial.print(ir_thermometer_1.read(), HEX);
+      // Serial.println("");
     }
 
   }
-  delay(50);
+  delay(100);
 }
