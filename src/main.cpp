@@ -44,8 +44,11 @@ using Thermometer = Optris_IR_Thermometer;
 // for the voltage logic level to work with the software serial
 // Hardware Serial is not being used since it does not support inverted logic
 SoftwareSerial ir_thermometer_1(8, 7);
+static unsigned long last_update_ms;
 
 void setup() {
+
+  last_update_ms = millis();
   Serial.begin(9600);
   
   // Initialize the baudrate of the IR thermometer with 9600 baudrate
@@ -59,24 +62,31 @@ void setup() {
       Serial.println("Fails to initialize the IR thermometer sensor. Retrying...");
       n_init_attempt--;
       // TODO (Khalid): Figure out a reasonable delay value
-      delay(100);
+      delay(1000);
     }
   }
 }
 
+
 void loop() {
+
   if (ir_thermometer_1.available() > Thermometer::expected_frame_size) {
     // We would only want to read when we receive the sync bytes 0xAAAA
+    Serial.print("Number of data available: ");
+    Serial.print(ir_thermometer_1.available());
+    Serial.println("");
     bool read_frame = false;
     int sync_frame_count = 2;
     if (ir_thermometer_1.peek() == 0xAA) {
       // Remove the sync byte frame from the buffer by reading it
       while (sync_frame_count > 0) {
         if (ir_thermometer_1.read() == 0xAA) {
+          Serial.println("0xAA found");
           // Decrement the count if we found the sync frame
           sync_frame_count--;
         } else {
           // If the byte found is not the sync frame, then assume framing error 
+          Serial.println("Framing error???");
           break;
         }
         
@@ -95,7 +105,12 @@ void loop() {
         // to check two bytes of 0x00
         if (ir_thermometer_1.peek() == 0x00) {
           read_frame = false;
-          // Just break out of the loop if we know it is the end of the frame
+          for (size_t i = 0; i < 2; i++) {
+            if (ir_thermometer_1.read() != 0x00) {
+              Serial.println("Something is wong!");
+            }
+          }
+          // Just break out of the loop since we know it is the end of the frame
           break;
         }
 
@@ -122,10 +137,10 @@ void loop() {
 
     }
     else {
-      ir_thermometer_1.read();
-      // Serial.print("Flushing the useless byte: ");
-      // Serial.print(ir_thermometer_1.read(), HEX);
-      // Serial.println("");
+      // ir_thermometer_1.read();
+      Serial.print("Flushing the useless byte: ");
+      Serial.print(ir_thermometer_1.read(), HEX);
+      Serial.println("");
     }
 
   }
