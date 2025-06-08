@@ -350,13 +350,16 @@ size_t __attribute__((optimize("O2"))) SoftwareSerial::write(uint8_t byte)
     uint8_t parity = (config.parity == SS_PARITY_ODD) ? 1 : 0;
 
     // Update data bits samples in the TX buffer.
-    tx_descr.dmabuf[0][0] = tx_get_sample(tx_descr.pin, 1);
+    // TODO: Please dont leave this implementation like this
+    // Force the first bit to be high to do inverted RS232
+    // This should be done within a conditional statement
     for (size_t i=0; i<config.databits; i++) {
         uint8_t bit = ((byte >> i) & 1) ^ config.polarity;
         // uint8_t bit = ((byte >> i) & 1) ^ 1;
         parity ^= bit;
         tx_descr.dmabuf[0][i + 1] = tx_get_sample(tx_descr.pin, bit);
     }
+    tx_descr.dmabuf[0][0] = tx_get_sample(tx_descr.pin, 1);
     tx_descr.dmabuf[0][9] = tx_get_sample(tx_descr.pin, 0);
 
     // Set parity bit;

@@ -33,8 +33,7 @@ void setup() {
 
 
 void loop() {
-  ir_thermometer_1.request_data(CMD_READ_PROCESS_TEMP);
-  float data = ir_thermometer_1.get_process_temperature();
+  float data = ir_thermometer_1.request_data(CMD_READ_PROCESS_TEMP);
   Serial.println(data);
   delay(10);
 }
