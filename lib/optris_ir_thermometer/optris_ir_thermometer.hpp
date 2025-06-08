@@ -15,7 +15,8 @@ class Optris_IR_Thermometer: public SoftwareSerial {
     ~Optris_IR_Thermometer() = default;
 
     void request_data(CommandType cmd);
-    void decode_process_temperature();
+    uint16_t get_encoded_process_temperature();
+    float get_process_temperature();
  
   private:
 

@@ -11,3 +11,21 @@ void Optris_IR_Thermometer::request_data(CommandType cmd) {
         write(_command_type[cmd][i]);
     }
 }
+
+uint16_t Optris_IR_Thermometer::get_encoded_process_temperature() {
+    uint16_t data_bytes; 
+    if (available() > 0) {
+        int msb_byte = read();
+        int lsb_byte = read();
+        data_bytes = ((msb_byte << (8)) | (lsb_byte));
+    }
+    return data_bytes;
+}
+
+float Optris_IR_Thermometer::get_process_temperature() {
+    uint16_t encoded_data = get_encoded_process_temperature();
+
+    float data = ((float)(encoded_data) - 1000)/10;
+    // float data = ((float)(encoded_data) - 1000)/10;
+    return data;
+}

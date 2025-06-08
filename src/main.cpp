@@ -34,13 +34,7 @@ void setup() {
 
 void loop() {
   ir_thermometer_1.request_data(CMD_READ_PROCESS_TEMP);
-
-  if (ir_thermometer_1.available() > 0) {
-    for (size_t i = 0; i < 2; i++) {
-      Serial.print(ir_thermometer_1.read(), HEX);
-      Serial.print(" ");
-    }
-    Serial.println("");
-  }
+  float data = ir_thermometer_1.get_process_temperature();
+  Serial.println(data);
   delay(10);
 }
